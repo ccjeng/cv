@@ -13,7 +13,7 @@ var $ = require('gulp-load-plugins')();
 gulp.task('default', ['serve']);
 
 // 静态服务器 + 监听 scss/html 文件
-gulp.task('serve', ['wiredep', 'sass'], function () {
+gulp.task('serve', ['wiredep','sass'], function () {
 
     browserSync.init({
         server: "./app"
