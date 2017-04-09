@@ -1,32 +1,27 @@
 {
-  "name": "wu_chong_cv",
-  "version": "0.1.0",
-  "description": "WU Chong CV",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/restlet/javascript-components"
-  },
+  "name": "cv",
+  "main": "server.js",
+  "dependencies": {},
   "devDependencies": {
-    "browser-sync": "^2.17.5",
-    "del": "^2.2.2",
-    "gulp": "^3.9.0",
-    "gulp-autoprefixer": "^3.1.1",
-    "gulp-cache": "^0.4.5",
-    "gulp-git": "^1.12.0",
-    "gulp-git-streamed": "1.0.0",
-    "gulp-htmlmin": "^3.0.0",
-    "gulp-if": "^2.0.1",
-    "gulp-imagemin": "^3.1.1",
-    "gulp-load-plugins": "^1.4.0",
-    "gulp-minify-css": "^1.2.4",
-    "gulp-sass": "^2.3.2",
-    "gulp-size": "^2.1.0",
-    "gulp-uglify": "^2.0.0",
-    "gulp-useref": "^3.1.2",
-    "wiredep": "^4.0.0"
+    "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-clean-css": "^3.0.4",
+    "gulp-concat": "^2.6.1",
+    "gulp-connect": "^5.0.0",
+    "gulp-gh-pages": "^0.5.4",
+    "gulp-imagemin": "^3.2.0",
+    "gulp-livereload": "^3.8.1",
+    "gulp-notify": "^3.0.0",
+    "gulp-sass": "^3.1.0",
+    "gulp-sourcemaps": "^2.5.1",
+    "gulp-uglify": "^2.1.2",
+    "gulp-watch": "^4.3.11"
   },
-  "engines": {
-    "node": ">=0.10.0"
-  },
-  "scripts": {}
+  "author": "ccjeng",
+  "license": "MIT",
+  "scripts": {
+    "start": "gulp",
+    "build": "gulp build",
+    "deploy": "gulp deploy"
+  }
 }

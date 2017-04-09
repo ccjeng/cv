@@ -1,81 +1,126 @@
 'use strict';
 
 var gulp = require('gulp');
+var concat = require('gulp-concat');
+var uglify = require('gulp-uglify');
+var sass = require('gulp-sass');
+var cssminify = require('gulp-clean-css');
+var imagemin = require('gulp-imagemin');
+var connect = require('gulp-connect'); 
+var livereload = require('gulp-livereload');
+var clean = require('gulp-clean');
+var sourcemaps = require('gulp-sourcemaps');
+var notify = require('gulp-notify');
+var ghPages = require('gulp-gh-pages');
+
+const dirs = {
+  src: 'src',
+  dest: 'server'
+};
+
+const stylesPaths = {
+  src: dirs.src + '/css/*.scss',
+  dest: dirs.dest + '/css'
+};
+
+const scriptsPaths = {
+  src: dirs.src + '/js/*.js',
+  dest: dirs.dest + '/js'
+};
+
+const imagesPaths = {
+  src: dirs.src + '/img/*',
+  dest: dirs.dest + '/img'
+};
 
 
-var browserSync = require('browser-sync').create();
-var reload = browserSync.reload;
-
-var del = require('del');
-var wiredep = require('wiredep').stream;
-var $ = require('gulp-load-plugins')();
-
-gulp.task('default', ['serve']);
-
-// 静态服务器 + 监听 scss/html 文件
-gulp.task('serve', ['wiredep','sass'], function () {
-
-    browserSync.init({
-        server: "./app"
+// Server Task
+gulp.task('server', function() {
+    connect.server({
+        root: dirs.dest,
+        livereload: true,
+        port: 8080
     });
-
-    gulp.watch("app/styles/*.scss", ['sass']);
-    gulp.watch("app/index.html").on('change', reload);
 });
 
-gulp.task('clean', del.bind(null, ['docs']));
-
-// scss编译后的css将注入到浏览器里实现更新
-gulp.task('sass', function () {
-    return gulp.src("app/styles/*.scss")
-        .pipe($.sass().on('error', $.sass.logError))
-        .pipe(gulp.dest("app/styles"))
-        .pipe(reload({stream: true}));
+// Styles Task
+var sassOptions = {
+  errLogToConsole: true,
+  outputStyle: 'expanded'
+};
+gulp.task('styles', function () {
+     return gulp.src(stylesPaths.src)
+        .pipe(sourcemaps.init())
+        .pipe(sass({outputStyle: 'compressed'}).on('error', sass.logError))
+        .pipe(sourcemaps.write())
+        .pipe(gulp.dest(stylesPaths.dest))
+        .pipe(connect.reload());
 });
 
-gulp.task('wiredep', function () {
-    gulp.src('app/index.html')
-        .pipe(wiredep({
-            ignorePath: /^(\.\.\/)*\.\./
-        }))
-        .pipe(gulp.dest('app'));
+// Styles Task 
+/*
+gulp.task('styles', function() {
+    return gulp.src(stylesPaths.src)
+        .pipe(sourcemaps.init())
+        .pipe(concat('all.min.css'))
+        .pipe(cssminify())  
+        .pipe(sourcemaps.write('./'))      
+        .pipe(gulp.dest(stylesPaths.dest))
+        .pipe(connect.reload());
+});*/
+
+gulp.task('html', function () {
+    return gulp.src(dirs.src+'/*.html')
+        .pipe(gulp.dest(dirs.dest))
+        .pipe(connect.reload());
 });
 
-gulp.task('styles', ['sass'], function () {
-    return gulp.src('app/styles/*.css')
-        .pipe($.autoprefixer(
-            {
-                browsers: ['> 1%', 'last 2 versions', 'Firefox ESR']
-            }))
-        .pipe(gulp.dest('app/styles'));
+// Scripts Task
+gulp.task('scripts', function() {
+    return gulp.src(scriptsPaths.src)
+        .pipe(sourcemaps.init({loadMaps: true}))
+        .pipe(concat('all.min.js'))
+        .pipe(uglify())
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest(scriptsPaths.dest));
 });
 
-gulp.task('html', ['styles'], function () {
-    return gulp.src('app/*.html')
-        .pipe($.useref())
-        //挑出其中的js文件
-        .pipe($.if('*.js', $.uglify()))
-        /* 挑选出其中的css文件 */
-        .pipe($.if('*.css', $.minifyCss()))
-        .pipe($.useref())
-        .pipe($.if('*.html', $.htmlmin({collapseWhitespace: true})))
-        .pipe(gulp.dest('docs'));
+// Images Task
+gulp.task('images', function() {
+    return gulp.src(imagesPaths.src)
+        .pipe(imagemin())
+        .pipe(gulp.dest(imagesPaths.dest));
 });
 
-gulp.task('images', function () {
-    return gulp.src('app/images/**/*')
-        .pipe($.cache($.imagemin({
-            progressive: true,
-            interlaced: true
-        })))
-        .pipe(gulp.dest('docs/images'));
+
+// Clean Task
+gulp.task('clean', function() {
+    return gulp.src([stylesPaths.dest+'/*', scriptsPaths.dest+'/*', imagesPaths.dest+'/*'], {read: false})
+        .pipe(clean());
 });
 
-gulp.task('fonts', function () {
-    return gulp.src('app/fonts/**/*')
-        .pipe(gulp.dest('docs/fonts'));
+// Watch Task
+gulp.task('watch', function() {
+    gulp.watch('src/*.html', ['html']);
+    gulp.watch(stylesPaths.src, ['styles']);
+    gulp.watch(scriptsPaths.src, ['scripts']);
+    gulp.watch(imagesPaths.src, ['images']);
+
+    // Watch any files in server/, reload on change
+    livereload.listen();
+    gulp.watch(['server/**']).on('change', livereload.changed);
 });
 
-gulp.task('build', ['clean', 'html', 'images', 'fonts'], function () {
-    return gulp.src('docs/**/*').pipe($.size({title: 'build', gzip: true}));
+//Deploy to ghPages Task
+gulp.task('ghpages', ['build'], function() {
+  return gulp.src(dirs.dest+'/**/*')
+    .pipe(ghPages());
 });
+
+// Default Task
+gulp.task('default', ['clean', 'html', 'styles', 'scripts', 'images', 'server', 'watch']);
+gulp.task('build', ['clean', 'html', 'scripts', 'styles', 'images']);
+gulp.task('deploy', ['ghpages']);
+
+
+
