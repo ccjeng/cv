@@ -3,6 +3,7 @@ $(document).ready(function () {
 
     $('#fullpage').fullpage({
         navigation: true,
-        navigationPosition: "right"
+        navigationPosition: "right",
+        slidesNavigation: true
     });
 });
